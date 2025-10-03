@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 import { msToDuration, tsToLocaleDateTimeString } from "@/lib/dateTime";
 import { GenericApiOkResp } from "@shared/genericApiTypes";
 import { PlayerModalPlayerData } from "@shared/playerApiTypes";
-import { ShieldAlertIcon } from "lucide-react";
+import { ShieldAlertIcon, MicOffIcon } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 
 
@@ -201,6 +201,35 @@ export default function PlayerInfoTab({ playerRef, player, serverTime, tsFetch, 
         }
     }, [player, serverTime]);
 
+    const playerMutedText: string | undefined = useMemo(() => {
+        if (!player || !serverTime) return;
+        let muteExpiration;
+        for (const action of player.actionHistory) {
+            if (action.type !== 'mute' || action.revokedAt) continue;
+            if (action.exp) {
+                if (action.exp >= serverTime) {
+                    muteExpiration = Math.max(muteExpiration ?? 0, action.exp);
+                }
+            } else {
+                return 'This player is permanently muted.';
+            }
+        }
+
+        if (muteExpiration !== undefined) {
+            const str = tsToLocaleDateTimeString(muteExpiration, 'short', 'short');
+            return `This player is muted until ${str}`;
+        }
+    }, [player, serverTime]);
+
+    const playerWagerBlacklistedText: string | undefined = useMemo(() => {
+        if (!player || !serverTime) return;
+        for (const action of player.actionHistory) {
+            if (action.type === 'wagerblacklist' && !action.revokedAt) {
+                return 'This player is on the wager blacklist.';
+            }
+        }
+    }, [player, serverTime]);
+
     return <div className="p-1">
         {playerBannedText ? (
             <div className="w-full p-2 pr-3 mb-1 flex items-center justify-between space-x-4 rounded-lg border shadow-lg transition-all text-black/75 dark:text-white/90 border-warning/70 bg-warning-hint">
@@ -209,6 +238,26 @@ export default function PlayerInfoTab({ playerRef, player, serverTime, tsFetch, 
                 </div>
                 <div className="flex-grow text-sm font-medium">
                     {playerBannedText}
+                </div>
+            </div>
+        ) : null}
+        {playerMutedText ? (
+            <div className="w-full p-2 pr-3 mb-1 flex items-center justify-between space-x-4 rounded-lg border shadow-lg transition-all text-black/75 dark:text-white/90 border-blue-500/70 bg-blue-500/10">
+                <div className="flex-shrink-0 flex flex-col gap-2 items-center">
+                    <MicOffIcon className="size-5 text-blue-500" />
+                </div>
+                <div className="flex-grow text-sm font-medium">
+                    {playerMutedText}
+                </div>
+            </div>
+        ) : null}
+        {playerWagerBlacklistedText ? (
+            <div className="w-full p-2 pr-3 mb-1 flex items-center justify-between space-x-4 rounded-lg border shadow-lg transition-all text-black/75 dark:text-white/90 border-destructive/70 bg-destructive-hint">
+                <div className="flex-shrink-0 flex flex-col gap-2 items-center">
+                    <ShieldAlertIcon className="size-5 text-destructive" />
+                </div>
+                <div className="flex-grow text-sm font-medium">
+                    {playerWagerBlacklistedText}
                 </div>
             </div>
         ) : null}

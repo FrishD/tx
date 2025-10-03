@@ -345,7 +345,27 @@ end
 --- Mute player's voice for everyone
 TX_EVENT_HANDLERS.playerMuted = function(eventData)
     if eventData.targetNetId then
+        -- Mute player for everyone
         TriggerClientEvent('txcl:setMuted', -1, eventData.targetNetId, true, eventData.reason)
+
+        -- Send notification to the muted player
+        local durationStr = 'Permanent'
+        if eventData.expiration then
+            local durationSeconds = eventData.expiration - os.time()
+            if durationSeconds > 0 then
+                durationStr = ''
+                local days = math.floor(durationSeconds / 86400)
+                if days > 0 then durationStr = durationStr .. days .. 'd ' end
+                local hours = math.floor((durationSeconds % 86400) / 3600)
+                if hours > 0 then durationStr = durationStr .. hours .. 'h ' end
+                local minutes = math.floor((durationSeconds % 3600) / 60)
+                if minutes > 0 then durationStr = durationStr .. minutes .. 'm' end
+            end
+        end
+        TriggerClientEvent('showMuteNotification', eventData.targetNetId, {
+            reason = eventData.reason,
+            duration = durationStr
+        })
     end
 end
 
@@ -498,8 +518,8 @@ AddEventHandler('txsv:startedWalking', function()
     if not license then return end
 
     local url = "http://"..TX_LUACOMHOST.."/player/status/"..license
-    local exData = {
-        txAdminToken = TX_LUACOMTOKEN
+    local headers = {
+        ['X-TxAdmin-Token'] = TX_LUACOMTOKEN
     }
 
     PerformHttpRequest(url, function(httpCode, rawData, resultHeaders)
@@ -513,7 +533,7 @@ AddEventHandler('txsv:startedWalking', function()
         if resp.isWagerBlacklisted then
             TriggerClientEvent('txcl:setWagerBlacklisted', -1, player, true)
         end
-    end, 'POST', json.encode(exData), {['Content-Type']='application/json'})
+    end, 'GET', '', headers)
 end)
 
 -- All commands & handlers

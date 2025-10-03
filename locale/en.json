@@ -379,6 +379,12 @@
                 "success": "Player added to Wager Blacklist!",
                 "helper_text": "The wager blacklist is permanent.",
                 "submit": "Blacklist"
+            },
+            "mute_notif": {
+                "title": "You have been Muted",
+                "muted_by_admin": "You have been muted by an administrator.",
+                "reason": "Reason:",
+                "duration": "Duration:"
             }
         }
     }

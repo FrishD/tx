@@ -22,6 +22,7 @@ import { Box } from "@mui/material";
 import { fetchNui } from "./utils/fetchNui";
 import { useLocale } from "./hooks/useLocale";
 import { TooltipProvider } from "./provider/TooltipProvider";
+import { MuteNotification } from "./components/MuteNotification";
 
 //Mock events for browser development
 debugData<any>(
@@ -107,6 +108,7 @@ const MenuWrapper: React.FC = () => {
             </DialogProvider>
           </IFrameProvider>
           <WarnPage />
+          <MuteNotification />
         </>
       </I18n>
     </TopLevelErrorBoundary>
