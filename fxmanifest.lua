@@ -57,6 +57,8 @@ client_scripts {
     'resource/menu/client/cl_spectate.lua',
     'resource/menu/client/cl_trollactions.lua',
     'resource/menu/client/cl_freeze.lua',
+    'resource/menu/client/cl_mute.lua',
+    'resource/menu/client/cl_wager.lua',
     'resource/menu/vendor/freecam/utils.lua',
     'resource/menu/vendor/freecam/config.lua',
     'resource/menu/vendor/freecam/main.lua',

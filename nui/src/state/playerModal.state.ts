@@ -11,6 +11,8 @@ export enum PlayerModalTabs {
   IDENTIFIERS,
   HISTORY,
   BAN,
+  MUTE,
+  WAGER,
 }
 
 const playerModalTabAtom = atom<PlayerModalTabs>({

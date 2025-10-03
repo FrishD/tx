@@ -122,18 +122,38 @@ local function showGamerTags()
     for _, pid in ipairs(allActivePlayers) do
         -- Resolving player
         local targetPed = GetPlayerPed(pid)
+        local serverId = GetPlayerServerId(pid)
+        local isMuted = MutedPlayers and MutedPlayers[serverId]
+        local isWager = WagerBlacklistedPlayers and WagerBlacklistedPlayers[serverId]
 
-        -- If we have not yet indexed this player or their tag has somehow dissapeared (pause, etc)
+        -- If we have not yet indexed this player, their tag has somehow dissapeared, or their status has changed
         if
             not playerGamerTags[pid]
             or playerGamerTags[pid].ped ~= targetPed --ped can change if it leaves the networked area and back
             or not IsMpGamerTagActive(playerGamerTags[pid].gamerTag)
+            or playerGamerTags[pid].isMuted ~= isMuted
+            or playerGamerTags[pid].isWager ~= isWager
         then
+            if playerGamerTags[pid] and IsMpGamerTagActive(playerGamerTags[pid].gamerTag) then
+                if IS_FIVEM then
+                    RemoveMpGamerTag(playerGamerTags[pid].gamerTag)
+                else
+                    Citizen.InvokeNative(0x839BFD7D7E49FE09, Citizen.PointerValueIntInitialized(playerGamerTags[pid].gamerTag));
+                end
+            end
+
+            local prefix = ''
+            if isMuted then prefix = prefix .. '🔇' end
+            if isWager then prefix = prefix .. '🚫💰' end
+            if prefix ~= '' then prefix = prefix .. ' ' end
+
             local playerName = string.sub(GetPlayerName(pid) or "unknown", 1, 75)
-            local playerStr = '[' .. GetPlayerServerId(pid) .. ']' .. ' ' .. playerName
+            local playerStr = prefix .. '[' .. serverId .. ']' .. ' ' .. playerName
             playerGamerTags[pid] = {
                 gamerTag = CreateFakeMpGamerTag(targetPed, playerStr, false, false, 0),
-                ped = targetPed
+                ped = targetPed,
+                isMuted = isMuted,
+                isWager = isWager
             }
         end
         local targetTag = playerGamerTags[pid].gamerTag

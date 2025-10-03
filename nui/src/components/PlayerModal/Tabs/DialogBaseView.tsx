@@ -6,6 +6,8 @@ import DialogHistoryView from "./DialogHistoryView";
 import DialogBanView from "./DialogBanView";
 import {Box} from "@mui/material";
 import {PlayerModalTabs, usePlayerModalTabValue} from "@nui/src/state/playerModal.state";
+import DialogMuteView from "./DialogMuteView";
+import DialogWagerView from "./DialogWagerView";
 
 const tabToRender = (tab: PlayerModalTabs) => {
   switch (tab) {
@@ -19,6 +21,10 @@ const tabToRender = (tab: PlayerModalTabs) => {
       return <DialogHistoryView />
     case PlayerModalTabs.BAN:
       return <DialogBanView />
+    case PlayerModalTabs.MUTE:
+      return <DialogMuteView />
+    case PlayerModalTabs.WAGER:
+      return <DialogWagerView />
   }
 }
 

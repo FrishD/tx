@@ -171,9 +171,14 @@ TX_EVENT_HANDLERS = {
     -- Handled by another file
     adminsUpdated = false, -- sv_admins.lua
     configChanged = false, -- sv_ctx.lua
-
+    actionRevoked = function(eventData)
+        if eventData.type == 'mute' and eventData.targetNetId then
+            TriggerClientEvent('txcl:setMuted', -1, eventData.targetNetId, false)
+        elseif eventData.type == 'wagerblacklist' and eventData.targetNetId then
+            TriggerClientEvent('txcl:setWagerBlacklisted', -1, eventData.targetNetId, false)
+        end
+    end,
     -- Known NO-OP
-    actionRevoked = false,
     adminAuth = false,
     consoleCommand = false,
     healedPlayer = false,
@@ -332,6 +337,23 @@ TX_EVENT_HANDLERS.playerBanned = function(eventData)
 
     if kickCount == 0 then
         txPrint("[handleBanEvent] No players found to kick")
+    end
+end
+
+
+--- Handler for the player muted event
+--- Mute player's voice for everyone
+TX_EVENT_HANDLERS.playerMuted = function(eventData)
+    if eventData.targetNetId then
+        TriggerClientEvent('txcl:setMuted', -1, eventData.targetNetId, true, eventData.reason)
+    end
+end
+
+
+--- Handler for the player wager blacklisted event
+TX_EVENT_HANDLERS.playerWagerBlacklisted = function(eventData)
+    if eventData.targetNetId then
+        TriggerClientEvent('txcl:setWagerBlacklisted', -1, eventData.targetNetId, true)
     end
 end
 

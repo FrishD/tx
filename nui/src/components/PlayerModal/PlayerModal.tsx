@@ -10,11 +10,13 @@ import {
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import {
+  AttachMoney,
   Block,
   Close,
   FlashOn,
   FormatListBulleted,
   MenuBook,
+  MicOff,
   Person,
 } from "@mui/icons-material";
 import {
@@ -206,6 +208,20 @@ const DialogList: React.FC = () => {
         curTab={curTab}
         icon={<Block />}
         isDisabled={!userHasPerm("players.ban", playerPerms)}
+      />
+      <DialogTab
+        title={t("nui_menu.player_modal.tabs.mute")}
+        tab={PlayerModalTabs.MUTE}
+        curTab={curTab}
+        icon={<MicOff />}
+        isDisabled={!userHasPerm("players.mute", playerPerms)}
+      />
+      <DialogTab
+        title={t("nui_menu.player_modal.tabs.wager")}
+        tab={PlayerModalTabs.WAGER}
+        curTab={curTab}
+        icon={<AttachMoney />}
+        isDisabled={!userHasPerm("wager.staff", playerPerms)}
       />
     </StyledList>
   );

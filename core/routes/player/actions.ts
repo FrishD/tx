@@ -47,6 +47,8 @@ export default async function PlayerActions(ctx: AuthedCtx) {
         return sendTypedResp(await handleKick(ctx, player));
     } else if (action === 'wagerblacklist') {
         return sendTypedResp(await handleWagerBlacklist(ctx, player));
+    } else if (action === 'mute') {
+        return sendTypedResp(await handleMute(ctx, player));
     } else {
         return sendTypedResp({ error: 'unknown action' });
     }
@@ -451,4 +453,81 @@ async function handleWagerBlacklist(ctx: AuthedCtx, player: PlayerClass): Promis
     }
 
     return { success: true };
+}
+
+
+/**
+ * Handle Mute command
+ */
+async function handleMute(ctx: AuthedCtx, player: PlayerClass): Promise<GenericApiResp> {
+    //Checking request
+    if (
+        anyUndefined(
+            ctx.request.body,
+            ctx.request.body.duration,
+            ctx.request.body.reason,
+        )
+    ) {
+        return { error: 'Invalid request.' };
+    }
+    const durationInput = ctx.request.body.duration.trim();
+    let reason = (ctx.request.body.reason as string).trim() || 'no reason provided';
+
+    //Calculating expiration/duration
+    let calcResults;
+    try {
+        calcResults = calcExpirationFromDuration(durationInput);
+    } catch (error) {
+        return { error: (error as Error).message };
+    }
+    const { expiration, duration } = calcResults;
+
+    //Check permissions
+    if (!ctx.admin.testPermission('players.mute', modulename)) {
+        return { error: 'You don\'t have permission to execute this action.' }
+    }
+
+    //Validating player
+    const allIds = player.getAllIdentifiers();
+    if (!allIds.length) {
+        return { error: 'Cannot mute a player with no identifiers.' }
+    }
+
+    //Register action
+    let actionId;
+    try {
+        actionId = txCore.database.actions.registerMute(
+            allIds,
+            ctx.admin.name,
+            reason,
+            expiration,
+            player.displayName,
+        );
+    } catch (error) {
+        return { error: `Failed to mute player: ${(error as Error).message}` };
+    }
+    ctx.admin.logAction(`Muted player "${player.displayName}": ${reason}`);
+
+    //No need to dispatch events if server is not online
+    if (txCore.fxRunner.isIdle) {
+        return { success: true };
+    }
+
+    // Dispatch `txAdmin:events:playerMuted`
+    const eventSent = txCore.fxRunner.sendEvent('playerMuted', {
+        author: ctx.admin.name,
+        reason,
+        actionId,
+        expiration,
+        durationInput,
+        targetNetId: (player instanceof ServerPlayer && player.isConnected) ? player.netid : null,
+        targetIds: player.ids,
+        targetName: player.displayName,
+    });
+
+    if (eventSent) {
+        return { success: true };
+    } else {
+        return { error: `Player muted, but likely failed to send the mute in game (stdin error).` };
+    }
 }
