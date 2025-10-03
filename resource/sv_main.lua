@@ -492,6 +492,30 @@ end
 -- MARK: Setup threads and commands & main stuff
 -- =============================================
 
+AddEventHandler('txsv:startedWalking', function()
+    local player = source
+    local license = GetPlayerIdentifierByType(player, 'license')
+    if not license then return end
+
+    local url = "http://"..TX_LUACOMHOST.."/player/status/"..license
+    local exData = {
+        txAdminToken = TX_LUACOMTOKEN
+    }
+
+    PerformHttpRequest(url, function(httpCode, rawData, resultHeaders)
+        if httpCode ~= 200 then return end
+        local resp = json.decode(rawData)
+        if not resp then return end
+
+        if resp.isMuted then
+            TriggerClientEvent('txcl:setMuted', -1, player, true, 'Muted while offline.')
+        end
+        if resp.isWagerBlacklisted then
+            TriggerClientEvent('txcl:setWagerBlacklisted', -1, player, true)
+        end
+    end, 'POST', json.encode(exData), {['Content-Type']='application/json'})
+end)
+
 -- All commands & handlers
 RegisterCommand("txaPing", txaPing, true)
 RegisterCommand("txaEvent", txaEvent, true)
