@@ -8,7 +8,7 @@ RegisterNetEvent('txcl:setMuted', function(targetNetId, isMuted, reason)
     if targetPlayer == -1 then return end
 
     -- Mute the player for the local client
-    MumbleSetPlayerMuted(targetNetId, isMuted)
+    Citizen.InvokeNative(0xCC6C2EB1, targetNetId, isMuted)
     MutedPlayers[targetNetId] = isMuted
 
     -- If muting, show a notification to the player
@@ -38,7 +38,7 @@ CreateThread(function()
     for _, player in ipairs(GetPlayers()) do
         local serverId = GetPlayerServerId(player)
         if MutedPlayers[serverId] then
-            MumbleSetPlayerMuted(serverId, true)
+            Citizen.InvokeNative(0xCC6C2EB1, serverId, true)
         end
     end
 end)
