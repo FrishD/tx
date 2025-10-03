@@ -136,6 +136,22 @@ const DialogInfoView: React.FC = () => {
           {player.tsJoined ? tsToLocaleDate(player.tsJoined) : "--"}
         </span>
       </Typography>
+      {player.isMuted && (
+        <Typography>
+          {t("nui_menu.player_modal.info.muted_label")}:{" "}
+          <span style={{ color: theme.palette.error.main }}>
+            {t("nui_menu.player_modal.info.status_yes")}
+          </span>
+        </Typography>
+      )}
+      {player.isWagerBlacklisted && (
+        <Typography>
+          {t("nui_menu.player_modal.info.wager_blacklist_label")}:{" "}
+          <span style={{ color: theme.palette.error.main }}>
+            {t("nui_menu.player_modal.info.status_yes")}
+          </span>
+        </Typography>
+      )}
       <Typography>
         {t("nui_menu.player_modal.info.whitelisted_label")}:{" "}
         <span style={{ color: theme.palette.text.secondary }}>

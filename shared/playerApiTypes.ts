@@ -38,6 +38,7 @@ export type PlayerModalPlayerData = {
     oldHwids?: string[]; //will also include the current ones
     tsLastConnection?: number; //only show if offline
     isWagerBlacklisted?: boolean;
+    isMuted?: boolean;
 }
 
 export type PlayerModalSuccess = {

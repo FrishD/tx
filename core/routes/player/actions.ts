@@ -434,6 +434,15 @@ async function handleWagerBlacklist(ctx: AuthedCtx, player: PlayerClass): Promis
     }
     ctx.admin.logAction(`Wager blacklisted player "${player.displayName}": ${reason}`);
 
+    // Dispatch `txAdmin:events:playerWagerBlacklisted`
+    txCore.fxRunner.sendEvent('playerWagerBlacklisted', {
+        author: ctx.admin.name,
+        reason,
+        targetNetId: (player instanceof ServerPlayer && player.isConnected) ? player.netid : null,
+        targetIds: player.ids,
+        targetName: player.displayName,
+    });
+
     //Add role & send log
     if (txConfig.discordBot.wagerBlacklistRole) {
         try {

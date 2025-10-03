@@ -8,7 +8,7 @@ RegisterNetEvent('txcl:setMuted', function(targetNetId, isMuted, reason)
     if targetPlayer == -1 then return end
 
     -- Mute the player for the local client
-    exports['pma-voice']:toggleMutePlayer(targetNetId, isMuted)
+    MumbleSetPlayerMuted(targetNetId, isMuted)
     MutedPlayers[targetNetId] = isMuted
 
     -- If muting, show a notification to the player
@@ -38,7 +38,7 @@ CreateThread(function()
     for _, player in ipairs(GetPlayers()) do
         local serverId = GetPlayerServerId(player)
         if MutedPlayers[serverId] then
-            exports['pma-voice']:toggleMutePlayer(serverId, true)
+            MumbleSetPlayerMuted(serverId, true)
         end
     end
 end)
