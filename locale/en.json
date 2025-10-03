@@ -254,7 +254,9 @@
                 "info": "Info",
                 "ids": "IDs",
                 "history": "History",
-                "ban": "Ban"
+                "ban": "Ban",
+                "mute": "Mute",
+                "wager": "Wager"
             },
             "actions": {
                 "title": "Player Actions",
@@ -343,6 +345,8 @@
                 "revoked_success": "Action revoked!",
                 "banned_by": "BANNED by %{author}",
                 "warned_by": "WARNED by %{author}",
+                "muted_by": "MUTED by %{author}",
+                "wager_by": "WAGER BLACKLISTED by %{author}",
                 "revoked_by": "Revoked by %{author}.",
                 "expired_at": "Expired at %{date}.",
                 "expires_at": "Expires at %{date}."
@@ -361,6 +365,20 @@
                 "custom": "Custom",
                 "helper_text": "Please select a duration",
                 "submit": "Apply ban"
+            },
+            "mute": {
+                "title": "Mute player",
+                "reason_required": "The Reason field is required.",
+                "success": "Player muted!",
+                "helper_text": "Please select a duration",
+                "submit": "Apply mute"
+            },
+            "wager": {
+                "title": "Wager Blacklist player",
+                "reason_required": "The Reason field is required.",
+                "success": "Player added to Wager Blacklist!",
+                "helper_text": "The wager blacklist is permanent.",
+                "submit": "Blacklist"
             }
         }
     }
