@@ -70,6 +70,35 @@ export class BasePlayer {
         );
     }
 
+    get isMuted() {
+        if (!this.license) return false;
+        const activeMutes = txCore.database.mutes.findMany(
+            [this.license],
+            { 'revocation.timestamp': null }
+        );
+        return activeMutes.length > 0;
+    }
+
+    get isWagerBlacklisted() {
+        if (!this.license) return false;
+        const activeBans = txCore.database.actions.findMany(
+            [this.license],
+            undefined,
+            (action: any) => action.type === 'wagerblacklist' && !action.revocation.timestamp
+        );
+        return activeBans.length > 0;
+    }
+
+    get isMuted() {
+        const history = this.getHistory();
+        return history.some((a: any) => a.type === 'mute' && !a.revocation.timestamp);
+    }
+
+    get isWagerBlacklisted() {
+        const history = this.getHistory();
+        return history.some((a: any) => a.type === 'wagerblacklist' && !a.revocation.timestamp);
+    }
+
     /**
      * Saves notes for this player.
      * NOTE: Techinically, we should be checking this.isRegistered, but not available in BasePlayer

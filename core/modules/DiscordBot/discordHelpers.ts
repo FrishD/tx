@@ -345,49 +345,41 @@ export const isValidButtonEmoji = (emoji: unknown) => {
 }
 
 /**
- * Send a log of a successful revocation to a discord channel
+ * Send a log of a successful or denied revocation to a discord webhook
  */
 export const sendRevocationLog = async (action: DatabaseActionType) => {
-    // Check if Discord bot is available
-    if (!txCore.discordBot || !txCore.discordBot.isClientReady || !txCore.discordBot.client) {
-        console.warn('Discord bot is not available for sending revocation log.');
-        return;
-    }
+    const webhookUrl = txConfig.discordBot.revokeLogWebhook;
+    if (!webhookUrl) return;
 
-    const channelId = '1202730523466932245'; // As requested by user
-
-    //Get channel
-    const channel = txCore.discordBot.client.channels.cache.get(channelId);
-    if (!channel || !channel.isTextBased()) {
-        console.warn(`The configured revocation log channel '${channelId}' is not a valid text channel.`);
-        return;
-    }
-
-    //Prepare embed
-    const approverAdmin = txCore.adminStore.getAdminByName(action.revocation.approver!);
-    const approverMention = approverAdmin ? getAdminMention(approverAdmin) : action.revocation.approver;
-
-    const embed = new EmbedBuilder({
-        color: embedColors.success,
-        title: `Action Revoked: ${action.type.toUpperCase()}`,
-        description: `**Player:** ${action.playerName || 'identifiers'}\n**Original Reason:** ${action.reason || 'no reason'}`,
-    })
-        .setAuthor({ name: `Revoked by ${action.revocation.approver}` })
-        .addFields(
-            { name: 'Revocation Reason', value: action.revocation.reason || 'no reason provided', inline: false },
-        )
-        .setFooter({ text: `Action ID: ${action.id}` })
-        .setTimestamp();
-
-    if (txConfig.general.serverIcon) {
-        embed.setThumbnail(txConfig.general.serverIcon);
-    }
-
-    //Send message
     try {
-        await channel.send({ embeds: [embed] });
+        //Prepare embed
+        const approverAdmin = txCore.adminStore.getAdminByName(action.revocation.approver!);
+        const approverMention = approverAdmin ? getAdminMention(approverAdmin) : action.revocation.approver;
+
+        const isApproved = action.revocation.status === 'approved';
+        const embed = new EmbedBuilder({
+            color: isApproved ? embedColors.success : embedColors.danger,
+            title: isApproved ? `Action Revoked: ${action.type.toUpperCase()}` : `Revocation Denied: ${action.type.toUpperCase()}`,
+            description: `**Player:** ${action.playerName || 'identifiers'}\n**Original Reason:** ${action.reason || 'no reason'}`,
+        })
+            .setAuthor({ name: isApproved ? `Revoked by ${action.revocation.approver!}` : `Denied by ${action.revocation.approver!}` })
+            .addFields(
+                { name: 'Revocation Reason', value: action.revocation.reason || 'no reason provided', inline: false },
+            )
+            .setFooter({ text: `Action ID: ${action.id}` })
+            .setTimestamp();
+
+        if (txConfig.general.serverIcon) {
+            embed.setThumbnail(txConfig.general.serverIcon);
+        }
+
+        const payload = {
+            embeds: [embed.toJSON()]
+        };
+
+        await got.post(webhookUrl, { json: payload });
     } catch (error) {
-        console.error(`Failed to send revocation log to discord channel with error: ${(error as Error).message}`);
+        console.error(`Failed to send revocation log to discord webhook with error: ${(error as Error).message}`);
     }
 }
 

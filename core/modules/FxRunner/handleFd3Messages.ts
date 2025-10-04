@@ -139,6 +139,16 @@ const handleFd3Messages = (mutex: string, trace: StructuredTraceType) => {
             handleBridgedCommands(data.payload);
         } else if (data.payload.type === 'txAdminAckWarning') {
             txCore.database.actions.ackWarn(data.payload.actionId);
+        } else if (data.payload.type === 'txAdminMutePlayer') {
+            const { author, targetLicense, duration, reason, targetName } = data.payload;
+            const expiration = (duration > 0) ? Math.floor(Date.now() / 1000) + duration : false;
+            txCore.database.mutes.registerMute([targetLicense], author, reason, expiration, targetName);
+        } else if (data.payload.type === 'txAdminUnmutePlayer') {
+            const { author, targetLicense } = data.payload;
+            const activeMutes = txCore.database.mutes.findMany([targetLicense], { 'revocation.timestamp': null });
+            if (activeMutes.length) {
+                txCore.database.mutes.approveRevoke(activeMutes[0].id, author, 'Unmuted by admin');
+            }
         }
     }
     

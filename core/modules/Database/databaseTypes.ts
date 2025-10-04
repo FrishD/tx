@@ -49,7 +49,12 @@ export type DatabaseActionWagerBlacklistType = {
     expiration: false;
 } & DatabaseActionBaseType;
 
-export type DatabaseActionType = DatabaseActionBanType | DatabaseActionWarnType | DatabaseActionWagerBlacklistType;
+export type DatabaseActionFlagType = {
+    type: 'flag';
+    expiration: false;
+} & DatabaseActionBaseType;
+
+export type DatabaseActionType = DatabaseActionBanType | DatabaseActionWarnType | DatabaseActionWagerBlacklistType | DatabaseActionFlagType;
 
 export type DatabaseWhitelistApprovalsType = {
     identifier: string;
@@ -69,10 +74,29 @@ export type DatabaseWhitelistRequestsType = {
     tsLastAttempt: number,
 };
 
+export type DatabaseMuteType = {
+    id: string;
+    type: 'mute';
+    ids: string[];
+    playerName: string | false;
+    reason: string;
+    author: string;
+    timestamp: number;
+    expiration: number | false;
+    revocation: {
+        timestamp: number | null;
+        approver: string | null;
+        requestor?: string | null;
+        status?: 'approved' | 'denied' | 'pending' | null;
+        reason?: string | null;
+    };
+};
+
 export type DatabaseDataType = {
     version: number,
     players: DatabasePlayerType[],
     actions: DatabaseActionType[],
+    mutes: DatabaseMuteType[],
     whitelistApprovals: DatabaseWhitelistApprovalsType[],
     whitelistRequests: DatabaseWhitelistRequestsType[],
 };

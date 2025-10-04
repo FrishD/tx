@@ -11,28 +11,28 @@ import { txToast } from "@/components/TxToaster";
 import { PlayerModalPlayerData } from "@shared/playerApiTypes";
 
 
-type PlayerWagerTabProps = {
+type PlayerFlagTabProps = {
     playerRef: PlayerModalRefType;
     player: PlayerModalPlayerData;
     refreshModalData: () => void;
 };
 
-export default function PlayerWagerTab({ playerRef, player, refreshModalData }: PlayerWagerTabProps) {
+export default function PlayerFlagTab({ playerRef, player, refreshModalData }: PlayerFlagTabProps) {
     const reasonRef = useRef<HTMLTextAreaElement>(null);
     const [isSaving, setIsSaving] = useState(false);
     const { hasPerm } = useAdminPerms();
     const closeModal = useClosePlayerModal();
-    const playerWagerApi = useBackendApi<GenericApiOkResp>({
+    const playerFlagApi = useBackendApi<GenericApiOkResp>({
         method: 'POST',
-        path: `/player/actions/wagerblacklist`,
+        path: `/player/actions/flag`,
         throwGenericErrors: true,
     });
 
-    const isBlacklisted = player.actionHistory.some(a => a.type === 'wagerblacklist' && !a.revokedAt);
+    const isFlagged = player.actionHistory.some(a => a.type === 'flag' && !a.revokedAt);
 
-    if (!hasPerm('wager.staff')) {
+    if (!hasPerm('players.ban')) { // Using ban perm for now
         return <ModalCentralMessage>
-            You don't have permission to wager blacklist players.
+            You don't have permission to flag players.
         </ModalCentralMessage>;
     }
 
@@ -47,12 +47,12 @@ export default function PlayerWagerTab({ playerRef, player, refreshModalData }: 
         }
 
         setIsSaving(true);
-        playerWagerApi({
+        playerFlagApi({
             queryParams: playerRef,
             data: { reason, revoke: false },
-            toastLoadingMessage: 'Adding to Wager Blacklist...',
+            toastLoadingMessage: 'Flagging Player...',
             genericHandler: {
-                successMsg: 'Player added to Wager Blacklist.',
+                successMsg: 'Player Flagged.',
             },
             success: (data) => {
                 setIsSaving(false);
@@ -76,12 +76,12 @@ export default function PlayerWagerTab({ playerRef, player, refreshModalData }: 
         }
 
         setIsSaving(true);
-        playerWagerApi({
+        playerFlagApi({
             queryParams: playerRef,
             data: { reason, revoke: true },
-            toastLoadingMessage: 'Revoking from Wager Blacklist...',
+            toastLoadingMessage: 'Unflagging Player...',
             genericHandler: {
-                successMsg: 'Player removed from Wager Blacklist.',
+                successMsg: 'Player Unflagged.',
             },
             success: (data) => {
                 setIsSaving(false);
@@ -94,18 +94,13 @@ export default function PlayerWagerTab({ playerRef, player, refreshModalData }: 
         });
     }
 
-    if (isBlacklisted) {
-        if (!hasPerm('wager.head')) {
-            return <ModalCentralMessage>
-                You don't have permission to revoke wager blacklists.
-            </ModalCentralMessage>;
-        }
+    if (isFlagged) {
         return (
             <div className="grid gap-4 p-1">
-                <p className="text-sm text-muted-foreground">This player is currently on the wager blacklist.</p>
+                <p className="text-sm text-muted-foreground">This player is currently flagged.</p>
                 <Textarea
                     ref={reasonRef}
-                    placeholder="Reason for revoking..."
+                    placeholder="Reason for unflagging..."
                     className="h-24"
                     disabled={isSaving}
                 />
@@ -118,9 +113,9 @@ export default function PlayerWagerTab({ playerRef, player, refreshModalData }: 
                     >
                         {isSaving ? (
                             <span className="flex items-center leading-relaxed">
-                                <Loader2Icon className="inline animate-spin h-4" /> Revoking...
+                                <Loader2Icon className="inline animate-spin h-4" /> Unflagging...
                             </span>
-                        ) : 'Revoke Blacklist'}
+                        ) : 'Remove Flag'}
                     </Button>
                 </div>
             </div>
@@ -132,7 +127,7 @@ export default function PlayerWagerTab({ playerRef, player, refreshModalData }: 
         <div className="grid gap-4 p-1">
             <Textarea
                 ref={reasonRef}
-                placeholder="Reason for wager blacklist..."
+                placeholder="Reason for flagging..."
                 className="h-24"
                 disabled={isSaving}
             />
@@ -145,9 +140,9 @@ export default function PlayerWagerTab({ playerRef, player, refreshModalData }: 
                 >
                     {isSaving ? (
                         <span className="flex items-center leading-relaxed">
-                            <Loader2Icon className="inline animate-spin h-4" /> Adding...
+                            <Loader2Icon className="inline animate-spin h-4" /> Flagging...
                         </span>
-                    ) : 'Add to Blacklist'}
+                    ) : 'Add Flag'}
                 </Button>
             </div>
         </div>

@@ -63,8 +63,22 @@ export default class FxScheduler {
         //Cron Function 
         setInterval(() => {
             this.checkSchedule();
+            this.checkExpiredMutes();
             txCore.webServer.webSocket.pushRefresh('status');
         }, 60 * 1000);
+    }
+
+    /**
+     * Checks for expired mutes and unmutes players if necessary
+     */
+    async checkExpiredMutes() {
+        const revokedLicenses = txCore.database.mutes.revokeExpired();
+        for (const license of revokedLicenses) {
+            const player = txCore.fxPlayerlist.getPlayerByLicense(license);
+            if (player) {
+                txCore.fxRunner.sendEvent('playerUnmuted', { targetNetId: player.netid });
+            }
+        }
     }
 
 

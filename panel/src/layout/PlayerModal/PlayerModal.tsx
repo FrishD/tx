@@ -13,6 +13,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import PlayerHistoryTab from "./PlayerHistoryTab";
 import PlayerBanTab from "./PlayerBanTab";
 import PlayerWagerTab from "./PlayerWagerTab";
+import PlayerMuteTab from "./PlayerMuteTab";
+import PlayerFlagTab from "./PlayerFlagTab";
 import GenericSpinner from "@/components/GenericSpinner";
 import { cn } from "@/lib/utils";
 import { useBackendApi } from "@/hooks/fetch";
@@ -41,6 +43,16 @@ const modalTabs = [
     },
     {
         title: 'Wager',
+        icon: <GavelIcon className="mr-2 h-5 w-5 hidden xs:block" />,
+        className: 'hover:bg-destructive hover:text-destructive-foreground',
+    },
+    {
+        title: 'Mute',
+        icon: <GavelIcon className="mr-2 h-5 w-5 hidden xs:block" />,
+        className: 'hover:bg-destructive hover:text-destructive-foreground',
+    },
+    {
+        title: 'Flag',
         icon: <GavelIcon className="mr-2 h-5 w-5 hidden xs:block" />,
         className: 'hover:bg-destructive hover:text-destructive-foreground',
     }
@@ -216,6 +228,18 @@ export default function PlayerModal() {
                                 />}
                                 {selectedTab === 'Wager' && <PlayerWagerTab
                                     playerRef={playerRef!}
+                                    player={modalData.player}
+                                    refreshModalData={refreshModalData}
+                                />}
+                                {selectedTab === 'Mute' && <PlayerMuteTab
+                                    playerRef={playerRef!}
+                                    player={modalData.player}
+                                    refreshModalData={refreshModalData}
+                                />}
+                                {selectedTab === 'Flag' && <PlayerFlagTab
+                                    playerRef={playerRef!}
+                                    player={modalData.player}
+                                    refreshModalData={refreshModalData}
                                 />}
                             </>
                         )}

@@ -25,6 +25,13 @@ const guild = typeNullableConfig({
     fixer: SYM_FIXER_DEFAULT,
 });
 
+const revokeLogWebhook = typeNullableConfig({
+    name: 'Revocation Log Webhook',
+    default: null,
+    validator: z.string().url().startsWith('https://discord.com/api/webhooks/').nullable(),
+    fixer: SYM_FIXER_DEFAULT,
+});
+
 const warningsChannel = typeNullableConfig({
     name: 'Warnings Channel ID',
     default: null,
@@ -94,6 +101,7 @@ export default {
     revokeApprovalRole,
     adminPermsChannel,
     panelLoginChannel,
+    revokeLogWebhook,
     wagerBlacklistRole,
     wagerBlacklistLogChannel,
     wagerRevokeLogChannel,

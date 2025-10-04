@@ -13,7 +13,7 @@ import { ShieldAlertIcon } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 
 
-function LogActionCounter({ type, count }: { type: 'Ban' | 'Warn' | 'Wager', count: number }) {
+function LogActionCounter({ type, count }: { type: 'Ban' | 'Warn' | 'Wager' | 'Flag', count: number }) {
     const pluralLabel = (count > 1) ? `${type}s` : type;
     if (count === 0) {
         return <span className={cn(
@@ -26,7 +26,8 @@ function LogActionCounter({ type, count }: { type: 'Ban' | 'Warn' | 'Wager', cou
         return <span className={cn(
             'h-max rounded-sm text-xs font-semibold px-1 py-[0.125rem] tracking-widest text-center inline-block',
             type === 'Ban' ? 'bg-destructive text-destructive-foreground' :
-            type === 'Wager' ? 'bg-destructive text-destructive-foreground' : 'bg-warning text-warning-foreground'
+            type === 'Wager' ? 'bg-destructive text-destructive-foreground' :
+            type === 'Flag' ? 'bg-destructive text-destructive-foreground' : 'bg-warning text-warning-foreground'
         )}>
             {count} {pluralLabel}
         </span>
@@ -159,6 +160,7 @@ export default function PlayerInfoTab({ playerRef, player, serverTime, tsFetch, 
     const banCount = player.actionHistory.filter((a) => a.type === 'ban' && !a.revokedAt).length;
     const warnCount = player.actionHistory.filter((a) => a.type === 'warn' && !a.revokedAt).length;
     const wagerBlacklistCount = player.actionHistory.filter((a) => a.type === 'wagerblacklist' && !a.revokedAt).length;
+    const flagCount = player.actionHistory.filter((a) => a.type === 'flag' && !a.revokedAt).length;
 
     const handleWhitelistClick = () => {
         playerWhitelistApi({
@@ -248,6 +250,7 @@ export default function PlayerInfoTab({ playerRef, player, serverTime, tsFetch, 
                     <LogActionCounter type="Ban" count={banCount} />
                     <LogActionCounter type="Warn" count={warnCount} />
                     <LogActionCounter type="Wager" count={wagerBlacklistCount} />
+                    <LogActionCounter type="Flag" count={flagCount} />
                 </dd>
                 <dd className="text-right">
                     <Button

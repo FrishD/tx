@@ -27,6 +27,7 @@ export const pageConfigs = {
     botToken: getPageConfig('discordBot', 'token'),
     discordGuild: getPageConfig('discordBot', 'guild'),
     warningsChannel: getPageConfig('discordBot', 'warningsChannel'),
+    revokeLogWebhook: getPageConfig('discordBot', 'revokeLogWebhook'),
     wagerBlacklistRole: getPageConfig('discordBot', 'wagerBlacklistRole'),
     wagerBlacklistLogChannel: getPageConfig('discordBot', 'wagerBlacklistLogChannel'),
     wagerRevokeLogChannel: getPageConfig('discordBot', 'wagerRevokeLogChannel'),
@@ -56,6 +57,7 @@ export default function ConfigCardDiscord({ cardCtx, pageCtx }: SettingsCardProp
     const wagerBlacklistRoleRef = useRef<HTMLInputElement | null>(null);
     const wagerBlacklistLogChannelRef = useRef<HTMLInputElement | null>(null);
     const wagerRevokeLogChannelRef = useRef<HTMLInputElement | null>(null);
+    const revokeLogWebhookRef = useRef<HTMLInputElement | null>(null);
 
     //Marshalling Utils
     const emptyToNull = (str?: string) => {
@@ -70,6 +72,7 @@ export default function ConfigCardDiscord({ cardCtx, pageCtx }: SettingsCardProp
             botToken: emptyToNull(botTokenRef.current?.value),
             discordGuild: emptyToNull(discordGuildRef.current?.value),
             warningsChannel: emptyToNull(warningsChannelRef.current?.value),
+            revokeLogWebhook: emptyToNull(revokeLogWebhookRef.current?.value),
             wagerBlacklistRole: emptyToNull(wagerBlacklistRoleRef.current?.value),
             wagerBlacklistLogChannel: emptyToNull(wagerBlacklistLogChannelRef.current?.value),
             wagerRevokeLogChannel: emptyToNull(wagerRevokeLogChannelRef.current?.value),
@@ -169,6 +172,19 @@ export default function ConfigCardDiscord({ cardCtx, pageCtx }: SettingsCardProp
                     You can leave it blank to disable this feature. <br />
                     To get the channel ID, go to Discord's settings and
                     <TxAnchor href="https://support.discordapp.com/hc/article_attachments/115002742731/mceclip0.png"> enable developer mode</TxAnchor>, then right-click on the channel name and select "Copy ID".
+                </SettingItemDesc>
+            </SettingItem>
+            <SettingItem label="Revocation Log Webhook" htmlFor={cfg.revokeLogWebhook.eid} showOptional>
+                <Input
+                    id={cfg.revokeLogWebhook.eid}
+                    ref={revokeLogWebhookRef}
+                    defaultValue={cfg.revokeLogWebhook.initialValue}
+                    onInput={updatePageState}
+                    disabled={pageCtx.isReadOnly}
+                    placeholder='https://discord.com/api/webhooks/...'
+                />
+                <SettingItemDesc>
+                    The webhook URL to send action revocation logs to.
                 </SettingItemDesc>
             </SettingItem>
             <SettingItem label="Wager Blacklist Role ID" htmlFor={cfg.wagerBlacklistRole.eid} showOptional>

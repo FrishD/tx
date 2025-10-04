@@ -47,6 +47,10 @@ export default async function PlayerActions(ctx: AuthedCtx) {
         return sendTypedResp(await handleKick(ctx, player));
     } else if (action === 'wagerblacklist') {
         return sendTypedResp(await handleWagerBlacklist(ctx, player));
+    } else if (action === 'mute') {
+        return sendTypedResp(await handleMute(ctx, player));
+    } else if (action === 'flag') {
+        return sendTypedResp(await handleFlag(ctx, player));
     } else {
         return sendTypedResp({ error: 'unknown action' });
     }
@@ -213,6 +217,140 @@ async function handleBan(ctx: AuthedCtx, player: PlayerClass): Promise<GenericAp
     if (txCore.fxRunner.isIdle) {
         return { success: true };
     }
+
+
+/**
+ * Handle Flag
+ */
+async function handleFlag(ctx: AuthedCtx, player: PlayerClass): Promise<GenericApiResp> {
+    //Checking request
+    if (anyUndefined(
+        ctx.request.body,
+        ctx.request.body.reason,
+    )) {
+        return { error: 'Invalid request.' };
+    }
+    const reason = ctx.request.body.reason.trim() || 'no reason provided';
+    const revoke = ctx.request.body.revoke || false;
+
+    //Check permissions
+    if (!ctx.admin.testPermission('players.ban', modulename)) { //using ban perm for now
+        return { error: 'You don\'t have permission to execute this action.' };
+    }
+
+    if (revoke) {
+        const activeFlags = txCore.database.actions.findMany(
+            player.getAllIdentifiers(),
+            undefined,
+            { type: 'flag', 'revocation.timestamp': null }
+        );
+        if (!activeFlags.length) {
+            return { error: 'This player is not flagged.' };
+        }
+        const actionToRevoke = activeFlags[0];
+
+        try {
+            txCore.database.actions.approveRevoke(actionToRevoke.id, ctx.admin.name, true, reason);
+        } catch (error) {
+            return { error: `Failed to unflag player: ${(error as Error).message}` };
+        }
+        ctx.admin.logAction(`Unflagged player "${player.displayName}".`);
+        return { success: true };
+    } else {
+        const allIds = player.getAllIdentifiers();
+        if (!allIds.length) {
+            return { error: 'Cannot flag a player with no identifiers.' };
+        }
+
+        try {
+            txCore.database.actions.registerFlag(allIds, ctx.admin.name, reason, player.displayName);
+        } catch (error) {
+            return { error: `Failed to flag player: ${(error as Error).message}` };
+        }
+        ctx.admin.logAction(`Flagged player "${player.displayName}": ${reason}`);
+        return { success: true };
+    }
+}
+
+
+/**
+ * Handle Mute
+ */
+async function handleMute(ctx: AuthedCtx, player: PlayerClass): Promise<GenericApiResp> {
+    //Checking request
+    if (anyUndefined(
+        ctx.request.body,
+        ctx.request.body.reason,
+    )) {
+        return { error: 'Invalid request.' };
+    }
+    const reason = ctx.request.body.reason.trim() || 'no reason provided';
+    const revoke = ctx.request.body.revoke || false;
+
+    //Check permissions
+    if (!ctx.admin.testPermission('players.mute', modulename)) {
+        return { error: 'You don\'t have permission to execute this action.' };
+    }
+
+    if (revoke) {
+        const activeMutes = txCore.database.mutes.findMany(
+            player.getAllIdentifiers(),
+            { 'revocation.timestamp': null }
+        );
+        if (!activeMutes.length) {
+            return { error: 'This player is not muted.' };
+        }
+        const actionToRevoke = activeMutes[0];
+
+        try {
+            txCore.database.mutes.approveRevoke(actionToRevoke.id, ctx.admin.name, reason);
+        } catch (error) {
+            return { error: `Failed to unmute player: ${(error as Error).message}` };
+        }
+        ctx.admin.logAction(`Unmuted player "${player.displayName}".`);
+
+        if (player instanceof ServerPlayer && player.isConnected) {
+            txCore.fxRunner.sendEvent('playerUnmuted', { targetNetId: player.netid });
+        }
+
+        return { success: true };
+    } else {
+        const durationInput = ctx.request.body.duration?.trim();
+        if (typeof durationInput !== 'string' || !/^\d+$/.test(durationInput)) {
+            return { error: 'Invalid duration. Must be a number in minutes.' };
+        }
+
+        let expiration;
+        try {
+            const durationMinutes = parseInt(durationInput, 10);
+            expiration = (durationMinutes === 0) ? false : Math.floor(Date.now() / 1000) + (durationMinutes * 60);
+        } catch (error) {
+            return { error: `Invalid duration: ${(error as Error).message}` };
+        }
+
+        const allIds = player.getAllIdentifiers();
+        if (!allIds.length) {
+            return { error: 'Cannot mute a player with no identifiers.' };
+        }
+
+        try {
+            txCore.database.mutes.registerMute(allIds, ctx.admin.name, reason, expiration, player.displayName);
+        } catch (error) {
+            return { error: `Failed to mute player: ${(error as Error).message}` };
+        }
+        const durationString = expiration === false ? 'permanently' : `for ${durationInput} minutes`;
+        ctx.admin.logAction(`Muted player "${player.displayName}" ${durationString}: ${reason}`);
+
+        if (player instanceof ServerPlayer && player.isConnected) {
+            txCore.fxRunner.sendEvent('playerMuted', {
+                targetNetId: player.netid,
+                reason: reason,
+            });
+        }
+
+        return { success: true };
+    }
+}
 
     //Prepare and send command
     let kickMessage, durationTranslated;
@@ -407,48 +545,93 @@ async function handleWagerBlacklist(ctx: AuthedCtx, player: PlayerClass): Promis
         return { error: 'Invalid request.' };
     }
     const reason = ctx.request.body.reason.trim() || 'no reason provided';
+    const revoke = ctx.request.body.revoke || false;
 
-    //Check permissions
-    if (!ctx.admin.testPermission('wager.staff', modulename)) {
-        return { error: 'You don\'t have permission to execute this action.' };
-    }
-
-    //Validating server & player
-    const allIds = player.getAllIdentifiers();
-    if (!allIds.length) {
-        return { error: 'Cannot wager blacklist a player with no identifiers.' };
-    }
-
-    //Register action
-    try {
-        txCore.database.actions.registerWagerBlacklist(
-            allIds,
-            ctx.admin.name,
-            reason,
-            player.displayName,
-        );
-    } catch (error) {
-        return { error: `Failed to wager blacklist player: ${(error as Error).message}` };
-    }
-    ctx.admin.logAction(`Wager blacklisted player "${player.displayName}": ${reason}`);
-
-    //Add role & send log
-    if (txConfig.discordBot.wagerBlacklistRole) {
-        try {
-            const discordId = allIds.find(id => id.startsWith('discord:'));
-            if (discordId) {
-                const uid = discordId.substring(8);
-                await txCore.discordBot.addMemberRole(uid, txConfig.discordBot.wagerBlacklistRole);
-                if (txConfig.discordBot.wagerBlacklistLogChannel) {
-                    const member = await txCore.discordBot.guild?.members.fetch(uid);
-                    if(member) sendWagerBlacklistLog(txConfig.discordBot.wagerBlacklistLogChannel, ctx.admin.name, member, reason);
-                }
-            }
-        } catch (error) {
-            //Don't fail the whole command if the role removal fails
-            console.error(`Failed to add role or send log: ${(error as Error).message}`);
+    if (revoke) {
+        //Check perms
+        if (!ctx.admin.testPermission('wager.head', modulename)) {
+            return { error: 'You don\'t have permission to execute this action.' };
         }
-    }
 
-    return { success: true };
+        //Find active wager blacklist
+        const activeBlacklist = txCore.database.actions.findMany(
+            player.getAllIdentifiers(),
+            undefined,
+            { type: 'wagerblacklist', 'revocation.timestamp': null }
+        );
+        if (!activeBlacklist.length) {
+            return { error: 'This user does not have an active wager blacklist.' };
+        }
+        const actionToRevoke = activeBlacklist[0];
+
+        //Revoking action
+        try {
+            txCore.database.actions.approveRevoke(actionToRevoke.id, ctx.admin.name, true, reason);
+        } catch (error) {
+            return { error: `Failed to revoke wager blacklist: ${(error as Error).message}` };
+        }
+
+        //Remove role & send log
+        if (txConfig.discordBot.wagerBlacklistRole) {
+            try {
+                const discordId = actionToRevoke.ids.find(id => id.startsWith('discord:'));
+                if (discordId) {
+                    const uid = discordId.substring(8);
+                    await txCore.discordBot.removeMemberRole(uid, txConfig.discordBot.wagerBlacklistRole);
+                    if (txConfig.discordBot.wagerRevokeLogChannel) {
+                        const member = await txCore.discordBot.guild?.members.fetch(uid);
+                        if (member) sendWagerBlacklistLog(txConfig.discordBot.wagerRevokeLogChannel, ctx.admin.name, member, reason, true);
+                    }
+                }
+            } catch (error) {
+                console.error(`Failed to remove role or send log: ${(error as Error).message}`);
+            }
+        }
+        ctx.admin.logAction(`Revoked wager blacklist for player "${player.displayName}".`);
+        return { success: true };
+
+    } else {
+        //Check permissions
+        if (!ctx.admin.testPermission('wager.staff', modulename)) {
+            return { error: 'You don\'t have permission to execute this action.' };
+        }
+
+        //Validating server & player
+        const allIds = player.getAllIdentifiers();
+        if (!allIds.length) {
+            return { error: 'Cannot wager blacklist a player with no identifiers.' };
+        }
+
+        //Register action
+        try {
+            txCore.database.actions.registerWagerBlacklist(
+                allIds,
+                ctx.admin.name,
+                reason,
+                player.displayName,
+            );
+        } catch (error) {
+            return { error: `Failed to wager blacklist player: ${(error as Error).message}` };
+        }
+        ctx.admin.logAction(`Wager blacklisted player "${player.displayName}": ${reason}`);
+
+        //Add role & send log
+        if (txConfig.discordBot.wagerBlacklistRole) {
+            try {
+                const discordId = allIds.find(id => id.startsWith('discord:'));
+                if (discordId) {
+                    const uid = discordId.substring(8);
+                    await txCore.discordBot.addMemberRole(uid, txConfig.discordBot.wagerBlacklistRole);
+                    if (txConfig.discordBot.wagerBlacklistLogChannel) {
+                        const member = await txCore.discordBot.guild?.members.fetch(uid);
+                        if (member) sendWagerBlacklistLog(txConfig.discordBot.wagerBlacklistLogChannel, ctx.admin.name, member, reason);
+                    }
+                }
+            } catch (error) {
+                //Don't fail the whole command if the role removal fails
+                console.error(`Failed to add role or send log: ${(error as Error).message}`);
+            }
+        }
+        return { success: true };
+    }
 }

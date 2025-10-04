@@ -4,6 +4,7 @@ import consoleFactory from '@lib/console';
 
 import PlayersDao from './dao/players';
 import ActionsDao from './dao/actions';
+import MutesDao from './dao/mutes';
 import WhitelistDao from './dao/whitelist';
 import StatsDao from './dao/stats';
 import CleanupDao from './dao/cleanup';
@@ -20,6 +21,7 @@ export default class Database {
     //Database Methods
     readonly players: PlayersDao;
     readonly actions: ActionsDao;
+    readonly mutes: MutesDao;
     readonly whitelist: WhitelistDao;
     readonly stats: StatsDao;
     readonly cleanup: CleanupDao;
@@ -28,6 +30,7 @@ export default class Database {
         this.#db = new DbInstance();
         this.players = new PlayersDao(this.#db);
         this.actions = new ActionsDao(this.#db);
+        this.mutes = new MutesDao(this.#db);
         this.whitelist = new WhitelistDao(this.#db);
         this.stats = new StatsDao(this.#db);
         this.cleanup = new CleanupDao(this.#db);

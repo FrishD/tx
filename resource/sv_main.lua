@@ -25,6 +25,7 @@ end
 -- =============================================
 TX_ADMINS = {}
 TX_PLAYERLIST = {}
+TX_PLAYER_STATUSES = {}
 TX_LUACOMHOST = GetConvar("txAdmin-luaComHost", "invalid")
 TX_LUACOMTOKEN = GetConvar("txAdmin-luaComToken", "invalid")
 TX_VERSION = GetResourceMetadata('monitor', 'version') -- for now, only used in the start print
@@ -442,6 +443,11 @@ local function handleConnections(name, setKickReason, d)
                             logError("Checking banlist/whitelist failed with invalid response: "..respStr)
                         else
                             if respObj.allow == true then
+                                TX_PLAYER_STATUSES[tostring(player)] = {
+                                    isMuted = respObj.isMuted,
+                                    isWagerBlacklisted = respObj.isWagerBlacklisted
+                                }
+                                TriggerClientEvent('txcl:updateAllPlayerStatuses', -1, TX_PLAYER_STATUSES)
                                 d.done()
                                 isDone = true
                             else

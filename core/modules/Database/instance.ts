@@ -19,6 +19,7 @@ export const defaultDatabase = {
     version: DATABASE_VERSION,
     actions: [],
     players: [],
+    mutes: [],
     whitelistApprovals: [],
     whitelistRequests: [],
 };

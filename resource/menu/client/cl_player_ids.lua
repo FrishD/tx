@@ -8,7 +8,12 @@ if not TX_MENU_ENABLED then return end
 -- Variables
 local isPlayerIdsEnabled = false
 local playerGamerTags = {}
+local playerStatuses = {}
 local distanceToCheck = GetConvarInt('txAdmin-menuPlayerIdDistance', 150)
+
+RegisterNetEvent('txcl:updateAllPlayerStatuses', function(statuses)
+    playerStatuses = statuses
+end)
 
 -- Game consts
 local fivemGamerTagCompsEnum = {
@@ -130,7 +135,22 @@ local function showGamerTags()
             or not IsMpGamerTagActive(playerGamerTags[pid].gamerTag)
         then
             local playerName = string.sub(GetPlayerName(pid) or "unknown", 1, 75)
-            local playerStr = '[' .. GetPlayerServerId(pid) .. ']' .. ' ' .. playerName
+            local playerServerId = GetPlayerServerId(pid)
+            local playerStatus = playerStatuses[tostring(playerServerId)]
+            local prefix = ''
+            if playerStatus then
+                if playerStatus.isMuted then
+                    prefix = prefix .. '🤫'
+                end
+                if playerStatus.isWagerBlacklisted then
+                    prefix = prefix .. '💰'
+                end
+            end
+            if prefix ~= '' then
+                prefix = prefix .. ' '
+            end
+
+            local playerStr = prefix .. '[' .. playerServerId .. ']' .. ' ' .. playerName
             playerGamerTags[pid] = {
                 gamerTag = CreateFakeMpGamerTag(targetPed, playerStr, false, false, 0),
                 ped = targetPed

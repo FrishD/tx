@@ -53,6 +53,8 @@ const prepCustomMessage = (msg: string) => {
 //Resp Type
 type AllowRespType = {
     allow: true;
+    isMuted?: boolean;
+    isWagerBlacklisted?: boolean;
 }
 type DenyRespType = {
     allow: false;
@@ -131,7 +133,18 @@ export default async function PlayerCheckJoin(ctx: InitializedCtx) {
         }
 
         //If not blocked by ban/wl, allow join
-        // return sendTypedResp({ allow: false, reason: 'APPROVED, BUT TEMP BLOCKED (DEBUG)' });
+        try {
+            const player = playerResolver(null, null, validIdsObject.license);
+            if (player) {
+                return sendTypedResp({
+                    allow: true,
+                    isMuted: player.isMuted,
+                    isWagerBlacklisted: player.isWagerBlacklisted,
+                });
+            }
+        } catch (error) {
+            //Player likely not in DB, which is fine
+        }
         return sendTypedResp({ allow: true });
     } catch (error) {
         const msg = `Failed to check ban/whitelist status: ${(error as Error).message}`;
