@@ -23,6 +23,9 @@ function HistoryItem({ action, serverTime, modalOpener }: HistoryItemProps) {
     } else if (action.type === 'wagerblacklist') {
         borderColorClass = 'border-destructive';
         actionMessage = `WAGER BLACKLISTED by ${action.author}`;
+    } else if (action.type === 'mute') {
+        borderColorClass = 'border-warning';
+        actionMessage = `MUTED by ${action.author}`;
     }
     if (action.revokedBy) {
         borderColorClass = '';

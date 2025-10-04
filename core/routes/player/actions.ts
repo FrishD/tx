@@ -45,6 +45,8 @@ export default async function PlayerActions(ctx: AuthedCtx) {
         return sendTypedResp(await handleDirectMessage(ctx, player));
     } else if (action === 'kick') {
         return sendTypedResp(await handleKick(ctx, player));
+    } else if (action === 'mute') {
+        return sendTypedResp(await handleMute(ctx, player));
     } else if (action === 'wagerblacklist') {
         return sendTypedResp(await handleWagerBlacklist(ctx, player));
     } else {
@@ -252,6 +254,76 @@ async function handleBan(ctx: AuthedCtx, player: PlayerClass): Promise<GenericAp
     } else {
         return { error: `Player banned, but likely failed to kick player (stdin error).` };
     }
+}
+
+
+/**
+ * Handle Muting
+ */
+async function handleMute(ctx: AuthedCtx, player: PlayerClass): Promise<GenericApiResp> {
+    //Checking request
+    if (
+        anyUndefined(
+            ctx.request.body,
+            ctx.request.body.duration,
+            ctx.request.body.reason,
+        )
+    ) {
+        return { error: 'Invalid request.' };
+    }
+    const durationInput = ctx.request.body.duration.trim();
+    let reason = (ctx.request.body.reason as string).trim() || 'no reason provided';
+
+    //Calculating expiration/duration
+    let calcResults;
+    try {
+        //Max 3 days
+        calcResults = calcExpirationFromDuration(durationInput, 259200);
+    } catch (error) {
+        return { error: (error as Error).message };
+    }
+    const { expiration } = calcResults;
+
+    //Check permissions
+    if (!ctx.admin.testPermission('players.kick', modulename)) { // Using kick perm for now
+        return { error: 'You don\'t have permission to execute this action.' }
+    }
+
+    //Validating player
+    const allIds = player.getAllIdentifiers();
+    if (!allIds.length) {
+        return { error: 'Cannot mute a player with no identifiers.' }
+    }
+
+    //Register action
+    try {
+        txCore.database.actions.registerMute(
+            allIds,
+            ctx.admin.name,
+            reason,
+            expiration,
+            player.displayName,
+        );
+    } catch (error) {
+        return { error: `Failed to mute player: ${(error as Error).message}` };
+    }
+    ctx.admin.logAction(`Muted player "${player.displayName}" for ${durationInput}: ${reason}`);
+
+    //No need to dispatch events if server is not online
+    if (txCore.fxRunner.isIdle) {
+        return { success: true };
+    }
+    if (!(player instanceof ServerPlayer) || !player.isConnected) {
+        return { success: true };
+    }
+
+    // Dispatch event to mute player in-game
+    txCore.fxRunner.sendEvent('playerMuted', {
+        target: player.netid,
+        expiration: expiration,
+    });
+
+    return { success: true };
 }
 
 
