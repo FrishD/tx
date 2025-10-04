@@ -1,7 +1,7 @@
 const modulename = 'WebServer:PlayerCheckJoin';
 import cleanPlayerName from '@shared/cleanPlayerName';
 import { GenericApiErrorResp } from '@shared/genericApiTypes';
-import { DatabaseActionBanType, DatabaseActionType, DatabaseWhitelistApprovalsType } from '@modules/Database/databaseTypes';
+import { DatabaseActionBanType, DatabaseActionMuteType, DatabaseActionType, DatabaseWhitelistApprovalsType } from '@modules/Database/databaseTypes';
 import { anyUndefined, now } from '@lib/misc';
 import { filterPlayerHwids, parsePlayerIds, shortenId, summarizeIdsArray } from '@lib/player/idUtils';
 import type { PlayerIdsObjectType } from "@shared/otherTypes";
@@ -53,6 +53,10 @@ const prepCustomMessage = (msg: string) => {
 //Resp Type
 type AllowRespType = {
     allow: true;
+    mute?: {
+        expiration: number | false;
+        reason: string;
+    }
 }
 type DenyRespType = {
     allow: false;
@@ -131,8 +135,12 @@ export default async function PlayerCheckJoin(ctx: InitializedCtx) {
         }
 
         //If not blocked by ban/wl, allow join
-        // return sendTypedResp({ allow: false, reason: 'APPROVED, BUT TEMP BLOCKED (DEBUG)' });
-        return sendTypedResp({ allow: true });
+        const mute = checkMute(validIdsArray);
+        if (mute) {
+            return sendTypedResp({ allow: true, mute });
+        } else {
+            return sendTypedResp({ allow: true });
+        }
     } catch (error) {
         const msg = `Failed to check ban/whitelist status: ${(error as Error).message}`;
         console.error(msg);
@@ -140,6 +148,32 @@ export default async function PlayerCheckJoin(ctx: InitializedCtx) {
         return sendTypedResp({ error: msg });
     }
 };
+
+
+/**
+ * Checks if the player is muted
+ */
+function checkMute(validIdsArray: string[]) {
+    // Check active mutes on matching identifiers
+    const ts = now();
+    const filter = (action: DatabaseActionType): action is DatabaseActionMuteType => {
+        return (
+            action.type === 'mute'
+            && (!action.expiration || action.expiration > ts)
+            && (!action.revocation.timestamp)
+        );
+    };
+    const activeMutes = txCore.database.actions.findMany(validIdsArray, undefined, filter);
+    if (activeMutes.length) {
+        const mute = activeMutes[0];
+        return {
+            expiration: mute.expiration,
+            reason: mute.reason,
+        };
+    } else {
+        return undefined;
+    }
+}
 
 
 /**

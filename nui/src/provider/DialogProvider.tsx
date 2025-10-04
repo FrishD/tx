@@ -42,9 +42,10 @@ interface InputDialogProps {
   title: string;
   description: string;
   placeholder: string;
-  onSubmit: (inputValue: string) => void;
+  onSubmit: (inputValue: string, durationVal?: string) => void;
   isMultiline?: boolean;
-  suggestions?: string[]
+  suggestions?: string[];
+  hasDuration?: boolean;
 }
 
 interface DialogProviderContext {
@@ -78,6 +79,7 @@ export const DialogProvider: React.FC<DialogProviderProps> = ({ children }) => {
   const [dialogProps, setDialogProps] =
     useState<InputDialogProps>(defaultDialogState);
   const [dialogInputVal, setDialogInputVal] = useState<string>("");
+  const [durationInputVal, setDurationInputVal] = useState<string>("");
   const { enqueueSnackbar } = useSnackbar();
   const curPage = usePageValue();
   const t = useTranslate();
@@ -99,7 +101,13 @@ export const DialogProvider: React.FC<DialogProviderProps> = ({ children }) => {
       });
     }
 
-    dialogProps.onSubmit(input);
+    if (dialogProps.hasDuration && !durationInputVal.trim()) {
+      return enqueueSnackbar(t("nui_menu.misc.dialog_empty_duration"), {
+        variant: "error",
+      });
+    }
+
+    dialogProps.onSubmit(input, durationInputVal);
     setCanSubmit(false);
 
     setListenForExit(true);
@@ -108,6 +116,10 @@ export const DialogProvider: React.FC<DialogProviderProps> = ({ children }) => {
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     setDialogInputVal(e.target.value);
+  };
+
+  const handleDurationChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setDurationInputVal(e.target.value);
   };
 
   const openDialog = useCallback((dialogProps: InputDialogProps) => {
@@ -127,6 +139,7 @@ export const DialogProvider: React.FC<DialogProviderProps> = ({ children }) => {
     setDialogProps(defaultDialogState);
     setCanSubmit(true);
     setDialogInputVal("");
+    setDurationInputVal("");
   };
 
   return (
@@ -178,6 +191,23 @@ export const DialogProvider: React.FC<DialogProviderProps> = ({ children }) => {
               }}
               onChange={handleChange}
             />
+            {dialogProps.hasDuration && (
+              <TextField
+                sx={{ pt: 1 }}
+                variant="standard"
+                fullWidth
+                id="dialog-duration-input"
+                placeholder={t("nui_menu.misc.dialog_duration_placeholder")}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <StyledCreate color="inherit" />
+                    </InputAdornment>
+                  ),
+                }}
+                onChange={handleDurationChange}
+              />
+            )}
           </DialogContent>
           <DialogActions>
             <Box display="flex" justifyContent="space-between" width="100%">

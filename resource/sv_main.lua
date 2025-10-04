@@ -376,42 +376,6 @@ end
 
 
 --- Handler for player muted event
-TX_EVENT_HANDLERS.playerMuted = function(eventData)
-    -- sanity check
-    if type(eventData.target) ~= 'number' then
-        return txPrintError('[playerMuted] invalid eventData', eventData)
-    end
-
-    -- muting
-    txPrint("Muting: #"..eventData.target)
-    MumbleSetPlayerMuted(eventData.target, true)
-end
-
-
---- Handler for action revoked event
-TX_EVENT_HANDLERS.actionRevoked = function(eventData)
-    if eventData.actionType ~= 'mute' then
-        return
-    end
-
-    for _, playerID in pairs(GetPlayers()) do
-        local identifiers = GetPlayerIdentifiers(playerID)
-        if identifiers then
-            local found = false
-            for _, searchIdentifier in pairs(eventData.playerIds) do
-                if found then break end
-                for _, playerIdentifier in pairs(identifiers) do
-                    if searchIdentifier == playerIdentifier then
-                        txPrint("[actionRevoked] Unmuting #"..playerID)
-                        MumbleSetPlayerMuted(playerID, false)
-                        found = true
-                        break
-                    end
-                end
-            end
-        end
-    end
-end
 
 
 --- Handler for the imminent shutdown event
@@ -522,6 +486,15 @@ local function handleConnections(name, setKickReason, d)
                             if respObj.allow == true then
                                 d.done()
                                 isDone = true
+                                if respObj.mute and type(respObj.mute.expiration) == 'number' then
+                                    CreateThread(function()
+                                        Wait(5000) -- wait 5 seconds for player to load
+                                        if DoesPlayerExist(player) then
+                                            txPrint("Re-applying active mute for player #"..player)
+                                            MumbleSetPlayerMuted(player, true)
+                                        end
+                                    end)
+                                end
                             else
                                 local reason = respObj.reason or "\n[txAdmin] no reason provided"
                                 d.done("\n"..reason)

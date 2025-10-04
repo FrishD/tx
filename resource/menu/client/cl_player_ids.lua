@@ -122,18 +122,29 @@ local function showGamerTags()
     for _, pid in ipairs(allActivePlayers) do
         -- Resolving player
         local targetPed = GetPlayerPed(pid)
+        local isMuted = MumbleIsPlayerMuted(pid)
+        local hasMuteStatusChanged = (playerGamerTags[pid] and playerGamerTags[pid].isMuted ~= isMuted)
 
         -- If we have not yet indexed this player or their tag has somehow dissapeared (pause, etc)
         if
             not playerGamerTags[pid]
             or playerGamerTags[pid].ped ~= targetPed --ped can change if it leaves the networked area and back
             or not IsMpGamerTagActive(playerGamerTags[pid].gamerTag)
+            or hasMuteStatusChanged
         then
+            if playerGamerTags[pid] and IsMpGamerTagActive(playerGamerTags[pid].gamerTag) then
+                RemoveMpGamerTag(playerGamerTags[pid].gamerTag)
+            end
+
             local playerName = string.sub(GetPlayerName(pid) or "unknown", 1, 75)
             local playerStr = '[' .. GetPlayerServerId(pid) .. ']' .. ' ' .. playerName
+            if isMuted then
+                playerStr = '[M] ' .. playerStr
+            end
             playerGamerTags[pid] = {
                 gamerTag = CreateFakeMpGamerTag(targetPed, playerStr, false, false, 0),
-                ped = targetPed
+                ped = targetPed,
+                isMuted = isMuted
             }
         end
         local targetTag = playerGamerTags[pid].gamerTag

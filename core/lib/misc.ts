@@ -244,7 +244,9 @@ export const parseDurationToSeconds = (inputDuration: string) => {
         throw new Error(`The duration number must be at least 1.`);
     }
 
-    if (unit.startsWith('hour')) {
+    if (unit.startsWith('minute')) {
+        return multiplier * 60;
+    } else if (unit.startsWith('hour')) {
         return multiplier * 3600;
     } else if (unit.startsWith('day')) {
         return multiplier * 86400;
@@ -253,7 +255,7 @@ export const parseDurationToSeconds = (inputDuration: string) => {
     } else if (unit.startsWith('month')) {
         return multiplier * 2592000; //30 days
     } else {
-        throw new Error(`Invalid ban duration. Supported units: hours, days, weeks, months`);
+        throw new Error(`Invalid ban duration. Supported units: minutes, hours, days, weeks, months`);
     }
 }
 

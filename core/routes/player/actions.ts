@@ -277,10 +277,13 @@ async function handleMute(ctx: AuthedCtx, player: PlayerClass): Promise<GenericA
     //Calculating expiration/duration
     let calcResults;
     try {
-        //Max 3 days
-        calcResults = calcExpirationFromDuration(durationInput, 259200);
+        calcResults = calcExpirationFromDuration(durationInput);
     } catch (error) {
         return { error: (error as Error).message };
+    }
+    //Max 3 days
+    if (calcResults.duration && calcResults.duration > 259200) {
+        return { error: 'Mute duration cannot be longer than 3 days.' };
     }
     const { expiration } = calcResults;
 

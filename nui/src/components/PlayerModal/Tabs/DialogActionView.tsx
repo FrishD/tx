@@ -118,6 +118,40 @@ const DialogActionView: React.FC = () => {
     });
   };
 
+  const handleMute = () => {
+    if (!userHasPerm("players.kick", playerPerms)) return showNoPerms("Mute");
+
+    openDialog({
+      hasDuration: true,
+      title: `${t(
+        "nui_menu.player_modal.actions.moderation.mute_dialog.title"
+      )} ${assocPlayer.displayName}`,
+      description: t(
+        "nui_menu.player_modal.actions.moderation.mute_dialog.description"
+      ),
+      placeholder: t(
+        "nui_menu.player_modal.actions.moderation.mute_dialog.placeholder"
+      ),
+      onSubmit: async (reason: string, duration?: string) => {
+        try {
+          const result = await fetchWebPipe<GenericApiResp>(
+            `/player/mute?mutex=current&netid=${assocPlayer.id}`,
+            {
+              method: "POST",
+              data: {
+                reason: reason.trim(),
+                duration: duration ? duration.trim() : "",
+              },
+            }
+          );
+          handleGenericApiResponse(result, "moderation.mute_dialog.success");
+        } catch (error) {
+          enqueueSnackbar((error as Error).message, { variant: "error" });
+        }
+      },
+    });
+  };
+
   const handleWarn = () => {
     if (!userHasPerm("players.warn", playerPerms)) return showNoPerms("Warn");
 
@@ -321,6 +355,14 @@ const DialogActionView: React.FC = () => {
           disabled={!userHasPerm("players.warn", playerPerms)}
         >
           {t("nui_menu.player_modal.actions.moderation.options.warn")}
+        </Button>
+        <Button
+          variant="outlined"
+          color="primary"
+          onClick={handleMute}
+          disabled={!userHasPerm("players.kick", playerPerms)}
+        >
+          {t("nui_menu.player_modal.actions.moderation.options.mute")}
         </Button>
         <Button
           variant="outlined"

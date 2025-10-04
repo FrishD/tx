@@ -83,6 +83,8 @@
             "announcement_title": "Server Announcement by %{author}:",
             "directmessage_title": "DM from admin %{author}:",
             "dialog_empty_input": "You cannot have an empty input.",
+            "dialog_duration_placeholder": "Enter duration (e.g., 10 minutes, 2 hours, 1 day)",
+            "dialog_empty_duration": "The duration field cannot be empty.",
             "onesync_error": "This option requires OneSync to be enabled."
         },
         "frozen": {
@@ -265,7 +267,8 @@
                         "dm": "DM",
                         "warn": "Warn",
                         "kick": "Kick",
-                        "set_admin": "Give Admin"
+        "set_admin": "Set Admin",
+        "mute": "Mute"
                     },
                     "dm_dialog": {
                         "title": "Direct Message",
@@ -278,6 +281,12 @@
                         "description": "What is the reason for direct warning this player?",
                         "placeholder": "Reason...",
                         "success": "Player warned!"
+                    },
+                    "mute_dialog": {
+                        "title": "Mute",
+                        "description": "This action will be registered in the player's history and will prevent the player from using voice chat.",
+                        "placeholder": "Mute reason",
+                        "success": "Player muted!"
                     },
                     "kick_dialog": {
                         "title": "Kick",
