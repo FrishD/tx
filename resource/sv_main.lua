@@ -166,14 +166,53 @@ local cvHideAnnouncement = GetConvarBool('txAdmin-hideDefaultAnnouncement')
 local cvHideDirectMessage = GetConvarBool('txAdmin-hideDefaultDirectMessage')
 local cvHideWarning = GetConvarBool('txAdmin-hideDefaultWarning')
 local cvHideScheduledRestartWarning = GetConvarBool('txAdmin-hideDefaultScheduledRestartWarning')
+
+--- Handler for player muted event
+local function handlePlayerMuted(eventData)
+    -- sanity check
+    if type(eventData.target) ~= 'number' then
+        return txPrintError('[playerMuted] invalid eventData', eventData)
+    end
+
+    -- muting
+    txPrint("Muting: #"..eventData.target)
+    MumbleSetPlayerMuted(eventData.target, true)
+end
+
+--- Handler for action revoked event
+local function handleActionRevoked(eventData)
+    if eventData.actionType ~= 'mute' then
+        return
+    end
+
+    for _, playerID in pairs(GetPlayers()) do
+        local identifiers = GetPlayerIdentifiers(playerID)
+        if identifiers then
+            local found = false
+            for _, searchIdentifier in pairs(eventData.playerIds) do
+                if found then break end
+                for _, playerIdentifier in pairs(identifiers) do
+                    if searchIdentifier == playerIdentifier then
+                        txPrint("[actionRevoked] Unmuting #"..playerID)
+                        MumbleSetPlayerMuted(playerID, false)
+                        found = true
+                        break
+                    end
+                end
+            end
+        end
+    end
+end
+
 -- Adding all known events to the list so txaEvent can do whitelist checking
 TX_EVENT_HANDLERS = {
     -- Handled by another file
     adminsUpdated = false, -- sv_admins.lua
     configChanged = false, -- sv_ctx.lua
+    playerMuted = handlePlayerMuted,
+    actionRevoked = handleActionRevoked,
 
     -- Known NO-OP
-    actionRevoked = false,
     adminAuth = false,
     consoleCommand = false,
     healedPlayer = false,
@@ -332,6 +371,45 @@ TX_EVENT_HANDLERS.playerBanned = function(eventData)
 
     if kickCount == 0 then
         txPrint("[handleBanEvent] No players found to kick")
+    end
+end
+
+
+--- Handler for player muted event
+TX_EVENT_HANDLERS.playerMuted = function(eventData)
+    -- sanity check
+    if type(eventData.target) ~= 'number' then
+        return txPrintError('[playerMuted] invalid eventData', eventData)
+    end
+
+    -- muting
+    txPrint("Muting: #"..eventData.target)
+    MumbleSetPlayerMuted(eventData.target, true)
+end
+
+
+--- Handler for action revoked event
+TX_EVENT_HANDLERS.actionRevoked = function(eventData)
+    if eventData.actionType ~= 'mute' then
+        return
+    end
+
+    for _, playerID in pairs(GetPlayers()) do
+        local identifiers = GetPlayerIdentifiers(playerID)
+        if identifiers then
+            local found = false
+            for _, searchIdentifier in pairs(eventData.playerIds) do
+                if found then break end
+                for _, playerIdentifier in pairs(identifiers) do
+                    if searchIdentifier == playerIdentifier then
+                        txPrint("[actionRevoked] Unmuting #"..playerID)
+                        MumbleSetPlayerMuted(playerID, false)
+                        found = true
+                        break
+                    end
+                end
+            end
+        end
     end
 end
 
