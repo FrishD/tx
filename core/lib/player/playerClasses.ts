@@ -89,16 +89,6 @@ export class BasePlayer {
         return activeBans.length > 0;
     }
 
-    get isMuted() {
-        const history = this.getHistory();
-        return history.some((a: any) => a.type === 'mute' && !a.revocation.timestamp);
-    }
-
-    get isWagerBlacklisted() {
-        const history = this.getHistory();
-        return history.some((a: any) => a.type === 'wagerblacklist' && !a.revocation.timestamp);
-    }
-
     /**
      * Saves notes for this player.
      * NOTE: Techinically, we should be checking this.isRegistered, but not available in BasePlayer
