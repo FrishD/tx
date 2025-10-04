@@ -5,7 +5,7 @@ import TxAnchor from '@/components/TxAnchor';
 import { cn } from '@/lib/utils';
 import { convertRowDateTime } from '@/lib/dateTime';
 import { TableBody, TableCell, TableHeader, TableRow } from "@/components/ui/table";
-import { Loader2Icon, GavelIcon, AlertTriangleIcon, Undo2Icon, TimerOffIcon, TimerIcon, HourglassIcon } from 'lucide-react';
+import { Loader2Icon, GavelIcon, AlertTriangleIcon, Undo2Icon, TimerOffIcon, TimerIcon, HourglassIcon, MicOffIcon } from 'lucide-react';
 import { useBackendApi } from '@/hooks/fetch';
 import { HistoryTableActionType, HistoryTableSearchResp, HistoryTableSearchType, HistoryTableSortingType } from '@shared/historyApiTypes';
 import { useOpenActionModal } from '@/hooks/actionModal';
@@ -38,6 +38,11 @@ function HistoryRow({ action, modalOpener }: HistoryRowProps) {
             <GavelIcon className='size-5' />
         </div>
         rowId = <span className='tracking-wider text-destructive'>{action.id}</span>
+    } else if (action.type === 'mute') {
+        rowPrefix = <div className='flex items-center px-1 bg-warning-hint text-warning'>
+            <MicOffIcon className='size-5' />
+        </div>
+        rowId = <span className='tracking-wider text-warning'>{action.id}</span>
     } else {
         throw new Error(`Invalid action type: ${action.type}`);
     }
