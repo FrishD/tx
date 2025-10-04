@@ -114,14 +114,14 @@ export default class UpdateChecker {
                     isImportant: updates.txa.isImportant,
                 }
                 if (updates.txa.isImportant) {
-                    console.error('This version of txAdmin is outdated.');
-                    console.error('Please update as soon as possible.');
-                    console.error('For more information: https://discord.gg/uAmsGa2');
+                    console.error('Welcome to the new TX Panel of Hydra DeathMatch!');
+                    console.error('If you have any questions, feel free to contact us :)');
+                    console.error('For support, visit: https://discord.gg/hQ89mMbRb8');
                 } else {
-                    console.warn('This version of txAdmin is outdated.');
-                    console.warn('A patch (bug fix) update is available for txAdmin.');
-                    console.warn('If you are experiencing any kind of issue, please update now.');
-                    console.warn('For more information: https://discord.gg/uAmsGa2');
+                    console.warn('Welcome to the new TX Panel of Hydra DeathMatch!');
+                    console.warn('Enjoy your experience and explore all the new features.');
+                    console.warn('If you have any questions, feel free to reach out to us :)');
+                    console.warn('For support, visit: https://discord.gg/hQ89mMbRb8');
                 }
             }
         }

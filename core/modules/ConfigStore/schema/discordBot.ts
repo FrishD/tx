@@ -32,10 +32,10 @@ const warningsChannel = typeNullableConfig({
     fixer: SYM_FIXER_DEFAULT,
 });
 
-export const revokeApprovalRole = "1311628293677776906";
-export const adminPermsChannel = "1416090468118433945";
-export const revokeApprovalChannel = "1416090376225296445";
-export const panelLoginChannel = "1416090440314392688";
+export const revokeApprovalRole = "1113574262364712970";
+export const adminPermsChannel = "1423672462167511250";
+export const revokeApprovalChannel = "1423672518375641148";
+export const panelLoginChannel = "1423923548564754522";
 
 
 //We are not validating the JSON, only that it is a string

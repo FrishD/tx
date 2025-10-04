@@ -116,11 +116,11 @@ export default function WarningBar() {
         return <InnerWarningBar
             titleIcon={<DownloadCloudIcon className="inline h-[1.2rem] -mt-1 mr-1" />}
             title={txUpdateData.isImportant
-                ? 'This version of txAdmin is outdated.'
-                : 'A patch (bug fix) update is available for txAdmin.'}
+            ? 'Welcome to the new TX Panel of Hydra DeathMatch!'
+            : 'Welcome to the new TX Panel of Hydra DeathMatch!'}
             description={txUpdateData.isImportant
-                ? `Version v${txUpdateData.version} has been released bringing new features, bug fixes and improvements.`
-                : `If you are experiencing any kind of issue, please update to v${txUpdateData.version}.`}
+                ? `Enjoy the latest update v${txUpdateData.version}, packed with new features, improvements, and bug fixes.`
+                : `If you run into any issues, we recommend updating to v${txUpdateData.version}.`}
             isImportant={txUpdateData.isImportant}
             canPostpone={true}
         />
@@ -128,9 +128,9 @@ export default function WarningBar() {
         return <InnerWarningBar
             titleIcon={<DownloadCloudIcon className="inline h-[1.2rem] -mt-1 mr-1" />}
             title={fxUpdateData.isImportant
-                ? 'This version of FXServer is outdated.'
-                : 'An update is available for FXServer.'}
-            description={`Please update FXServer to artifact ${fxUpdateData.version}.`}
+            ? 'Welcome to the new TX Panel of Hydra DeathMatch!'
+            : 'Welcome to the new TX Panel of Hydra DeathMatch!'}
+            description={`Please make sure your FXServer is updated to artifact ${fxUpdateData.version}.`}
             isImportant={fxUpdateData.isImportant}
             canPostpone={true}
         />

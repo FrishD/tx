@@ -111,7 +111,7 @@ export default async (interaction: Interaction) => {
         const [modalType, action, actionId] = interaction.customId.split(':');
 
         if (modalType === 'revoke_modal' && (action === 'approve' || action === 'deny')) {
-            const revokeApprovalRole = txCore.discordConfig.revokeApprovalRole || "1311628293677776906";
+            const revokeApprovalRole = txCore.discordConfig.revokeApprovalRole || "1113574262364712970";
             if (!revokeApprovalRole) {
                 return await interaction.reply(embedder.danger('Revoke approval role not configured.', true));
             }
